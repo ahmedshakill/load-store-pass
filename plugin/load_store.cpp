@@ -2,67 +2,138 @@
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Analysis/MemoryDependenceAnalysis.h"
-
-
-#include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/ADT/SetVector.h"
-#include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/Analysis/BasicAliasAnalysis.h"
-#include "llvm/Analysis/TargetLibraryInfo.h"
-#include "llvm/AsmParser/Parser.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/InstIterator.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Module.h"
-#include "llvm/InitializePasses.h"
-#include "llvm/Support/SourceMgr.h"
+#include "llvm/Analysis/DependenceAnalysis.h"
 
 using namespace llvm;
 
 namespace {
 
 void visitor(Function &F,FunctionAnalysisManager & FAM){
-    auto &MD = FAM.getResult<MemoryDependenceAnalysis>(F);  //: nullptr;
-    // FAM.getResult<Memory
-    // &FAM.getResult<AA>
+    llvm::MemoryDependenceAnalysis::Result *MDA = &FAM.getResult<MemoryDependenceAnalysis>(F);  
+    llvm::DependenceAnalysis::Result *DA  = &FAM.getResult<DependenceAnalysis>(F);
+
+
+    llvm::SetVector<Instruction*> instVect;
+    
+    for(BasicBlock &BB : F){
+        for(Instruction &I : BB){
+            if(I.getOpcode() ==I.Store ){
+                instVect.insert(&I);
+            /*
+                errs()<<I.getOpcodeName()<<" ";
+                for(auto  &&it = I.op_begin(); it!=I.op_end();++it){
+                    errs()<<*it->get()<<" ";
+                }
+                errs()<<"\n";
+
+                llvm::MemDepResult memdep = MDA->getDependency(&I);
+                auto dependentInst = memdep.getInst();
+                if(dependentInst!=nullptr){
+                    // if(dyn_cast<CallInst>(dependentInst)){
+                        errs()<<"dependent instruction \n"<<dependentInst->getOpcodeName()<<" ";
+                        for(auto  &&it = dependentInst->op_begin(); it!=dependentInst->op_end();++it){
+                                errs()<<*it->get()<<" ";
+                        }
+                        errs()<<"\n";
+                    // }
+                }
+
+            */    
+                using LoadDepVect = SmallVector<NonLocalDepResult, 64>;
+                LoadDepVect Deps;
+                MDA->getNonLocalPointerDependency(&I, Deps);
+                unsigned NumDeps = Deps.size();
+                if(NumDeps > 1){
+                    errs()<<I<<" "<<"\t\t has "<<NumDeps<<" deps \n";;
+                    for(auto NLDR : Deps){
+                        Instruction *DepInst =  NLDR.getResult().getInst();
+                        auto depInfo = DA->depends(DepInst,&I,true);
+                        if((DepInst!=nullptr  && depInfo!=nullptr ) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
+                            errs()<<"\t"<<*DepInst<<" \n";
+                            depInfo->dump(errs()<<"\t ");
+                            errs().flush();
+                        }
+                    }
+                errs()<<"\n";
+                }
+            }
+            
+            if( I.getOpcode()==I.Load){
+                instVect.insert(&I);
+               /* 
+                errs()<<I.getOpcodeName()<<" ";
+                for(auto  &&it = I.op_begin(); it!=I.op_end();++it){
+                    errs()<<*it->get()<<" ";
+                }
+                errs()<<"\n";
+
+                llvm::MemDepResult memdep = MDA->getDependency(&I);
+                if(memdep.isNonLocal()){
+                    auto dependentInst = memdep.getInst();
+                    if(dependentInst!=nullptr){
+                        // if(dyn_cast<CallInst>(dependentInst)){
+                            errs()<<"dependent instruction \n"<<dependentInst->getOpcodeName()<<" ";
+                            for(auto  &&it = dependentInst->op_begin(); it!=dependentInst->op_end();++it){
+                                    errs()<<*it->get()<<" ";
+                            }
+                            errs()<<"\n";
+                        // }
+                    }
+                    
+                }*/
+                
+                using LoadDepVect = SmallVector<NonLocalDepResult, 64>;
+                LoadDepVect Deps;
+                MDA->getNonLocalPointerDependency(&I, Deps);
+                unsigned NumDeps = Deps.size();
+                if(NumDeps > 1){
+                    errs()<<I<<" "<<"\t\t has "<<NumDeps<<" deps \n";;
+                    for(auto NLDR : Deps){
+                        Instruction *DepInst =  NLDR.getResult().getInst();
+                        auto depInfo = DA->depends(DepInst,&I,true);
+                        if((DepInst!=nullptr && depInfo!=nullptr) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
+                            errs()<<"\t"<<*DepInst<<" ";
+                            depInfo->dump(errs()<<"\t ");
+                            errs().flush();
+                        }
+                    }
+                errs()<<"\n";
+                }
+            }
+        }
+    }
+
     
 
-    // llvm::PassManager<MemoryDependenceAnalysis> *pm;
-    // pm->addPass(MemoryDependenceAnalysis());
-    // pm->run(F,FAM);
-    // getA
-    // MemoryDependenceResults *MD = nullptr;
-    // FAM.registerPass(PassBuilder && PB);
-    
+/*
     for(auto && itBB = F.begin(); itBB!=F.end(); ++itBB ){
         for(auto && itInst = itBB->begin();itInst!=itBB->end();++itInst){
-            if(itInst->getOpcode()==itInst->Store){
+            if(itInst->getOpcode()==itInst->Store or itInst->getOpcode()==itInst->Load){
                 // errs()<< "store ";
                 // for(auto  &&it = itInst->op_begin(); it!=itInst->op_end();++it){
                 //     errs()<<*it->get()<<" ";
                 // }
                 // errs()<<"\n";
-                // llvm::MemDepResult memdep = MD.getDependency(&(*itInst));
-                // if(memdep.isLocal()){
-                //     auto dependentInst = memdep.getInst();
-                //     // if(dyn_cast<CallInst>(dependentInst)){
-                //         errs()<<"dependent instruction \n"<<dependentInst->getOpcodeName()<<" ";
-                //         // <<" operands : ";
-                //         // for(int i = 0;i<dependentInst->getNumOperands();++i){
-                //         //     errs()<<*dependentInst->getOperand(i)<<" ";
-                //         // }
+                llvm::MemDepResult memdep = MD.getDependency(&(*itInst));
+                errs()<<itInst->getOpcodeName()<<"\n";
+                if(memdep.isLocal()){
+                    auto dependentInst = memdep.getInst();
+                    // if(dyn_cast<CallInst>(dependentInst)){
+                        errs()<<"dependent instruction \n"<<dependentInst->getOpcodeName()<<" ";
+                        // <<" operands : ";
+                        // for(int i = 0;i<dependentInst->getNumOperands();++i){
+                        //     errs()<<*dependentInst->getOperand(i)<<" ";
+                        // }
 
-                //         for(auto  &&it = dependentInst->op_begin(); it!=dependentInst->op_end();++it){
-                //                 errs()<<*it->get()<<" ";
-                //         }
-                //         errs()<<"\n";
-                //     // }
-                // }
+                        for(auto  &&it = dependentInst->op_begin(); it!=dependentInst->op_end();++it){
+                                errs()<<*it->get()<<" ";
+                        }
+                        errs()<<"\n";
+                    // }
+                }
             }
             if(itInst->getOpcode()==itInst->Load){
-                errs()<< "load ";
+                // errs()<< "load ";
 
                 // for(auto  &&it = itInst->op_begin(); it!=itInst->op_end();++it){
                 //     errs()<<*it->get()<<" ";
@@ -90,13 +161,12 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
 
         }
     }
+    */
 }
 
 struct LoadStore : PassInfoMixin<LoadStore>{
    
     PreservedAnalyses  run(Function &F, FunctionAnalysisManager& FAM){
-        // FPM.addPass(MemoryDependenceAnalysis());
-        // FPM.run(F,FAM);
 
         if(F.getName().str()=="kernel_cholesky")
             visitor(F,FAM);
