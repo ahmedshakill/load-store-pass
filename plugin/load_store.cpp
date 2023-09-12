@@ -4,6 +4,11 @@
 #include "llvm/Analysis/MemoryDependenceAnalysis.h"
 #include "llvm/Analysis/DependenceAnalysis.h"
 
+// Use MemorySSA
+// It creates an internal data structure of Use, Def and Phi for a provided function
+// returns for an instuction its user list.
+#include "llvm/Analysis/MemorySSA.h"
+
 using namespace llvm;
 
 namespace {
@@ -11,8 +16,9 @@ namespace {
 void visitor(Function &F,FunctionAnalysisManager & FAM){
     llvm::MemoryDependenceAnalysis::Result *MDA = &FAM.getResult<MemoryDependenceAnalysis>(F);  
     llvm::DependenceAnalysis::Result *DA  = &FAM.getResult<DependenceAnalysis>(F);
-
-
+    auto memssa=  &FAM.getResult<MemorySSAAnalysis>(F).getMSSA();
+    memssa->print(errs());
+    errs()<<" ";
     llvm::SetVector<Instruction*> instVect;
     
     for(BasicBlock &BB : F){
@@ -43,63 +49,78 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
                 LoadDepVect Deps;
                 MDA->getNonLocalPointerDependency(&I, Deps);
                 unsigned NumDeps = Deps.size();
+                errs()<<I<<" "<<"\t\t has "<<NumDeps<<" NoLocal deps \n";;
                 if(NumDeps > 1){
-                    errs()<<I<<" "<<"\t\t has "<<NumDeps<<" deps \n";;
                     for(auto NLDR : Deps){
                         Instruction *DepInst =  NLDR.getResult().getInst();
                         auto depInfo = DA->depends(DepInst,&I,true);
                         if((DepInst!=nullptr  && depInfo!=nullptr ) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
-                            errs()<<"\t"<<*DepInst<<" \n";
-                            depInfo->dump(errs()<<"\t ");
+                            errs()<<"\t"<<*DepInst<<" ";
+                            depInfo->dump(errs()<<"\t deptype ");
                             errs().flush();
                         }
                     }
                 errs()<<"\n";
+                }
+
+                
+                auto localDepResult = MDA->getDependency(&I);
+                auto dependentInst = localDepResult.getInst();
+                if(dependentInst!=nullptr ){
+                    errs()<<"\t\t\t\t\t local dep \n\t"<<*dependentInst<<" \n";
+                
                 }
             }
             
-            if( I.getOpcode()==I.Load){
-                instVect.insert(&I);
-               /* 
-                errs()<<I.getOpcodeName()<<" ";
-                for(auto  &&it = I.op_begin(); it!=I.op_end();++it){
-                    errs()<<*it->get()<<" ";
-                }
-                errs()<<"\n";
+            // if( I.getOpcode()==I.Load){
+            //     instVect.insert(&I);
+            //    /* 
+            //     errs()<<I.getOpcodeName()<<" ";
+            //     for(auto  &&it = I.op_begin(); it!=I.op_end();++it){
+            //         errs()<<*it->get()<<" ";
+            //     }
+            //     errs()<<"\n";
 
-                llvm::MemDepResult memdep = MDA->getDependency(&I);
-                if(memdep.isNonLocal()){
-                    auto dependentInst = memdep.getInst();
-                    if(dependentInst!=nullptr){
-                        // if(dyn_cast<CallInst>(dependentInst)){
-                            errs()<<"dependent instruction \n"<<dependentInst->getOpcodeName()<<" ";
-                            for(auto  &&it = dependentInst->op_begin(); it!=dependentInst->op_end();++it){
-                                    errs()<<*it->get()<<" ";
-                            }
-                            errs()<<"\n";
-                        // }
-                    }
+            //     llvm::MemDepResult memdep = MDA->getDependency(&I);
+            //     if(memdep.isNonLocal()){
+            //         auto dependentInst = memdep.getInst();
+            //         if(dependentInst!=nullptr){
+            //             // if(dyn_cast<CallInst>(dependentInst)){
+            //                 errs()<<"dependent instruction \n"<<dependentInst->getOpcodeName()<<" ";
+            //                 for(auto  &&it = dependentInst->op_begin(); it!=dependentInst->op_end();++it){
+            //                         errs()<<*it->get()<<" ";
+            //                 }
+            //                 errs()<<"\n";
+            //             // }
+            //         }
                     
-                }*/
+            //     }*/
                 
-                using LoadDepVect = SmallVector<NonLocalDepResult, 64>;
-                LoadDepVect Deps;
-                MDA->getNonLocalPointerDependency(&I, Deps);
-                unsigned NumDeps = Deps.size();
-                if(NumDeps > 1){
-                    errs()<<I<<" "<<"\t\t has "<<NumDeps<<" deps \n";;
-                    for(auto NLDR : Deps){
-                        Instruction *DepInst =  NLDR.getResult().getInst();
-                        auto depInfo = DA->depends(DepInst,&I,true);
-                        if((DepInst!=nullptr && depInfo!=nullptr) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
-                            errs()<<"\t"<<*DepInst<<" ";
-                            depInfo->dump(errs()<<"\t ");
-                            errs().flush();
-                        }
-                    }
-                errs()<<"\n";
-                }
-            }
+            //     using LoadDepVect = SmallVector<NonLocalDepResult, 64>;
+            //     LoadDepVect Deps;
+            //     MDA->getNonLocalPointerDependency(&I, Deps);
+            //     unsigned NumDeps = Deps.size();
+            //     if(NumDeps > 1){
+            //         errs()<<I<<" "<<"\t\t has "<<NumDeps<<" NoLocal deps \n";;
+            //         for(auto NLDR : Deps){
+            //             Instruction *DepInst =  NLDR.getResult().getInst();
+            //             auto depInfo = DA->depends(DepInst,&I,true);
+            //             if((DepInst!=nullptr && depInfo!=nullptr) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
+            //                 errs()<<"\t"<<*DepInst<<" ";
+            //                 depInfo->dump(errs()<<"\t deptype ");
+            //                 errs().flush();
+            //             }
+            //         }
+            //     errs()<<"\n";
+            //     }
+                
+            //     auto localDepResult = MDA->getDependency(&I);
+            //     auto dependentInst = localDepResult.getInst();
+            //     if(dependentInst!=nullptr){
+            //         errs()<<*dependentInst<<"\n";
+            //     }
+            // }
+
         }
     }
 
