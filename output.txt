@@ -1,63 +1,52 @@
 
 
-  store i32 %0, ptr %3, align 4 		 has 1 NoLocal deps 
-					 local dep 
-					  %3 = alloca i32, align 4 
+  store i32 %0, ptr %3, align 4 		 ; has 1 NoLocal deps 
+		 local dep --->		  %3 = alloca i32, align 4 
 
-  store ptr %1, ptr %4, align 8 		 has 1 NoLocal deps 
-					 local dep 
-					  %4 = alloca ptr, align 8 
+  store ptr %1, ptr %4, align 8 		 ; has 1 NoLocal deps 
+		 local dep --->		  %4 = alloca ptr, align 8 
 
-  store i32 0, ptr %5, align 4 		 has 1 NoLocal deps 
-					 local dep 
-					  %5 = alloca i32, align 4 
+  store i32 0, ptr %5, align 4 		 ; has 1 NoLocal deps 
+		 local dep --->		  %5 = alloca i32, align 4 
 
-  store i32 0, ptr %6, align 4 		 has 2 NoLocal deps 
-		  %14 = load i32, ptr %6, align 4 	 deptype consistent anti [S|<]!
+  store i32 0, ptr %6, align 4 		 ; has 2 NoLocal deps 
+		  %14 = load i32, ptr %6, align 4 	 ; deptype consistent anti [S|<]!
 
 
 
-  store i32 0, ptr %7, align 4 		 has 3 NoLocal deps 
-		  %75 = load i32, ptr %7, align 4 	 deptype consistent anti [S|<]!
-		  %19 = load i32, ptr %7, align 4 	 deptype consistent anti [S S|<]!
+  store i32 0, ptr %7, align 4 		 ; has 3 NoLocal deps 
+		  %75 = load i32, ptr %7, align 4 	 ; deptype consistent anti [S|<]!
+		  %19 = load i32, ptr %7, align 4 	 ; deptype consistent anti [S S|<]!
 
 
 
-  store double %48, ptr %45, align 8 		 has 1 NoLocal deps 
-					 local dep 
-					  %46 = load double, ptr %45, align 8 
+  store double %48, ptr %45, align 8 		 ; has 1 NoLocal deps 
+		 local dep --->		  %46 = load double, ptr %45, align 8 
 
-  store i32 %51, ptr %7, align 4 		 has 1 NoLocal deps 
-					 local dep 
-					  %50 = load i32, ptr %7, align 4 
+  store i32 %51, ptr %7, align 4 		 ; has 1 NoLocal deps 
+		 local dep --->		  %50 = load i32, ptr %7, align 4 
 
-  store double %69, ptr %67, align 8 		 has 1 NoLocal deps 
-					 local dep 
-					  %68 = load double, ptr %67, align 8 
+  store double %69, ptr %67, align 8 		 ; has 1 NoLocal deps 
+		 local dep --->		  %68 = load double, ptr %67, align 8 
 
-  store i32 %72, ptr %6, align 4 		 has 1 NoLocal deps 
-					 local dep 
-					  %71 = load i32, ptr %6, align 4 
+  store i32 %72, ptr %6, align 4 		 ; has 1 NoLocal deps 
+		 local dep --->		  %71 = load i32, ptr %6, align 4 
 
-  store i32 0, ptr %7, align 4 		 has 3 NoLocal deps 
-		  %75 = load i32, ptr %7, align 4 	 deptype consistent anti [S|<]!
-		  %19 = load i32, ptr %7, align 4 	 deptype consistent anti [S|<]!
+  store i32 0, ptr %7, align 4 		 ; has 3 NoLocal deps 
+		  %75 = load i32, ptr %7, align 4 	 ; deptype consistent anti [S|<]!
+		  %19 = load i32, ptr %7, align 4 	 ; deptype consistent anti [S|<]!
 
 
 
-  store double %104, ptr %101, align 8 		 has 1 NoLocal deps 
-					 local dep 
-					  %102 = load double, ptr %101, align 8 
+  store double %104, ptr %101, align 8 		 ; has 1 NoLocal deps 
+		 local dep --->		  %102 = load double, ptr %101, align 8 
 
-  store i32 %107, ptr %7, align 4 		 has 1 NoLocal deps 
-					 local dep 
-					  %106 = load i32, ptr %7, align 4 
+  store i32 %107, ptr %7, align 4 		 ; has 1 NoLocal deps 
+		 local dep --->		  %106 = load i32, ptr %7, align 4 
 
-  store double %117, ptr %124, align 8 		 has 1 NoLocal deps 
-					 local dep 
-					  %117 = call double @sqrt(double noundef %116) #4 
+  store double %117, ptr %124, align 8 		 ; has 1 NoLocal deps 
+		 local dep --->		  %117 = call double @sqrt(double noundef %116) #4 
 
-  store i32 %127, ptr %5, align 4 		 has 1 NoLocal deps 
-					 local dep 
-					  %126 = load i32, ptr %5, align 4 
+  store i32 %127, ptr %5, align 4 		 ; has 1 NoLocal deps 
+		 local dep --->		  %126 = load i32, ptr %5, align 4 
 

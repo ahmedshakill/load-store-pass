@@ -51,14 +51,14 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
                 LoadDepVect Deps;
                 MDA->getNonLocalPointerDependency(&I, Deps);
                 unsigned NumDeps = Deps.size();
-                errs()<<I<<" "<<"\t\t has "<<NumDeps<<" NoLocal deps \n";;
+                errs()<<I<<" "<<"\t\t ; has "<<NumDeps<<" NonLocal deps \n";;
                 if(NumDeps > 1){
                     for(auto NLDR : Deps){
                         Instruction *DepInst =  NLDR.getResult().getInst();
                         auto depInfo = DA->depends(DepInst,&I,true);
                         if((DepInst!=nullptr  && depInfo!=nullptr ) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
                             errs()<<"\t\t"<<*DepInst<<" ";
-                            depInfo->dump(errs()<<"\t deptype ");
+                            depInfo->dump(errs()<<"\t ; deptype ");
                             errs().flush();
                         }
                     }
@@ -69,7 +69,7 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
                 auto localDepResult = MDA->getDependency(&I);
                 auto dependentInst = localDepResult.getInst();
                 if(dependentInst!=nullptr ){
-                    errs()<<"\t\t\t\t\t local dep \n\t\t\t\t\t"<<*dependentInst<<" \n\n";
+                    errs()<<"\t\t local dep --->\t\t"<<*dependentInst<<" \n\n";
                 }else{
                     errs()<<"\n\n";
                 }
