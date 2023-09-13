@@ -17,8 +17,10 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
     llvm::MemoryDependenceAnalysis::Result *MDA = &FAM.getResult<MemoryDependenceAnalysis>(F);  
     llvm::DependenceAnalysis::Result *DA  = &FAM.getResult<DependenceAnalysis>(F);
     auto memssa=  &FAM.getResult<MemorySSAAnalysis>(F).getMSSA();
-    memssa->print(errs());
-    errs()<<" ";
+    
+    // memssa->print(errs());
+    // errs()<<" ";
+    errs()<<"\n\n";
     llvm::SetVector<Instruction*> instVect;
     
     for(BasicBlock &BB : F){
@@ -55,7 +57,7 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
                         Instruction *DepInst =  NLDR.getResult().getInst();
                         auto depInfo = DA->depends(DepInst,&I,true);
                         if((DepInst!=nullptr  && depInfo!=nullptr ) /*&& !strcmp(DepInst->getOpcodeName(),"store")*/ ){
-                            errs()<<"\t"<<*DepInst<<" ";
+                            errs()<<"\t\t"<<*DepInst<<" ";
                             depInfo->dump(errs()<<"\t deptype ");
                             errs().flush();
                         }
@@ -67,8 +69,9 @@ void visitor(Function &F,FunctionAnalysisManager & FAM){
                 auto localDepResult = MDA->getDependency(&I);
                 auto dependentInst = localDepResult.getInst();
                 if(dependentInst!=nullptr ){
-                    errs()<<"\t\t\t\t\t local dep \n\t"<<*dependentInst<<" \n";
-                
+                    errs()<<"\t\t\t\t\t local dep \n\t\t\t\t\t"<<*dependentInst<<" \n\n";
+                }else{
+                    errs()<<"\n\n";
                 }
             }
             
