@@ -4,10 +4,6 @@
 #include "llvm/Analysis/MemoryDependenceAnalysis.h"
 #include "llvm/Analysis/DependenceAnalysis.h"
 
-// Use MemorySSA
-// It creates an internal data structure of Use, Def and Phi for a provided function
-// returns for an instuction its user list.
-#include "llvm/Analysis/MemorySSA.h"
 
 using namespace llvm;
 
@@ -16,11 +12,7 @@ namespace {
 void visitor(Function &F,FunctionAnalysisManager & FAM){
     llvm::MemoryDependenceAnalysis::Result *MDA = &FAM.getResult<MemoryDependenceAnalysis>(F);  
     llvm::DependenceAnalysis::Result *DA  = &FAM.getResult<DependenceAnalysis>(F);
-    auto memssa=  &FAM.getResult<MemorySSAAnalysis>(F).getMSSA();
     
-    // memssa->print(errs());
-    // errs()<<" ";
-    errs()<<"\n\n";
     llvm::SetVector<Instruction*> instVect;
     
     for(BasicBlock &BB : F){
